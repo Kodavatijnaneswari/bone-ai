@@ -4,7 +4,7 @@ import Constants from 'expo-constants';
 // Replace with your local machine's IP address (e.g., '192.168.1.10')
 // For Android Emulator, use '10.0.2.2'
 // For iOS Simulator, use 'localhost'
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8000'; 
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://bone-h6ca.onrender.com'; 
 
 export const api = axios.create({
   baseURL: BASE_URL,
