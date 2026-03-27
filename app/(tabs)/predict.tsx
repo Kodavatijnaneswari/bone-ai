@@ -5,6 +5,8 @@ import { api, ENDPOINTS } from '@/api/config';
 import { Colors } from '@/constants/theme';
 import { Upload, Camera, RefreshCcw } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { getUserAuth } from '@/api/auth';
+import { Platform } from 'react-native';
 
 export default function PredictScreen() {
   const [image, setImage] = useState<string | null>(null);
@@ -44,13 +46,25 @@ export default function PredictScreen() {
 
     setLoading(true);
     try {
+      const auth = await getUserAuth();
       const formData = new FormData();
-      const filename = image.split('/').pop();
-      const match = /\.(\w+)$/.exec(filename || '');
-      const type = match ? `image/${match[1]}` : `image`;
+      
+      const filename = image.split('/').pop() || 'image.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : `image/jpeg`;
 
-      // @ts-ignore
-      formData.append('image', { uri: image, name: filename, type });
+      if (Platform.OS === 'web') {
+        const response = await fetch(image);
+        const blob = await response.blob();
+        formData.append('image', blob, filename);
+      } else {
+        // @ts-ignore
+        formData.append('image', { uri: image, name: filename, type });
+      }
+
+      if (auth.id !== null) {
+        formData.append('userid', auth.id.toString());
+      }
 
       const response = await api.post(ENDPOINTS.DETECT, formData, {
         headers: {
@@ -58,7 +72,6 @@ export default function PredictScreen() {
         },
       });
 
-      // Navigate to dedicated result screen
       router.push({
         pathname: '/result',
         params: {
@@ -68,10 +81,11 @@ export default function PredictScreen() {
           image_url: response.data.image_url,
         }
       });
-      setImage(null); // Clear after success
+      setImage(null);
     } catch (error: any) {
-      console.error(error);
-      Alert.alert('Detection Failed', 'Make sure the backend is running and the image size is reasonable.');
+      console.error('Detection Error:', error);
+      const errorMsg = error.response?.data?.error || error.message || 'Detection failed.';
+      Alert.alert('Analysis Failed', errorMsg);
     } finally {
       setLoading(false);
     }
