@@ -37,7 +37,7 @@ export default function HistoryScreen() {
         finding: item.finding,
         category: item.category,
         confidence: item.confidence,
-        image_url: item.processed_image, // Note: backend uses processed_image field name
+        image_url: item.processed_image_url, 
       }
     });
   };
