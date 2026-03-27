@@ -26,6 +26,7 @@ export const ENDPOINTS = {
   DETECT: '/api/detect/',
   HISTORY: (userId: number) => `/api/history/${userId}/`,
   ADMIN_USERS: '/api/admin/users/',
+  ADMIN_STATS: '/api/admin/stats/',
   ADMIN_USER_ACTION: (userId: number, action: string) => `/api/admin/users/${userId}/${action}/`,
 };
 

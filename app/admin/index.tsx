@@ -8,6 +8,7 @@ import { clearUserAuth } from '@/api/auth';
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState<any[]>([]);
+  const [stats, setStats] = useState({ active_users: 0, images_analyzed: 0, model_version: 'v8s' });
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -18,8 +19,12 @@ export default function AdminDashboard() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await api.get(ENDPOINTS.ADMIN_USERS);
-      setUsers(response.data);
+      const [usersRes, statsRes] = await Promise.all([
+        api.get(ENDPOINTS.ADMIN_USERS),
+        api.get(ENDPOINTS.ADMIN_STATS)
+      ]);
+      setUsers(usersRes.data);
+      setStats(statsRes.data);
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Failed to fetch users');
@@ -56,18 +61,18 @@ export default function AdminDashboard() {
         <View style={styles.statsRow}>
             <View style={styles.statCard}>
                 <Text style={styles.statLabel}>ACTIVE USERS</Text>
-                <Text style={styles.statVal}>--</Text>
-                <Text style={styles.statTrend}>+12% from last wk</Text>
+                <Text style={styles.statVal}>{stats.active_users}</Text>
+                <Text style={styles.statTrend}>Authorized Clinicians</Text>
             </View>
             <View style={styles.statCard}>
                 <Text style={styles.statLabel}>IMAGES ANALYZED</Text>
-                <Text style={styles.statVal}>--</Text>
+                <Text style={styles.statVal}>{stats.images_analyzed}</Text>
                 <Text style={styles.statTrend}>Historical total</Text>
             </View>
             <View style={styles.statCard}>
                 <Text style={styles.statLabel}>MODEL VERSION</Text>
-                <Text style={styles.statValGold}>v8s</Text>
-                <Text style={styles.statTrendGold}>Optimization in progress</Text>
+                <Text style={styles.statValGold}>{stats.model_version}</Text>
+                <Text style={styles.statTrendGold}>Optimization Active</Text>
             </View>
         </View>
 
