@@ -39,7 +39,8 @@ export default function LoginScreen() {
         }
       }
     } catch (error: any) {
-      const msg = error.response?.data?.error || 'Login failed. Please check credentials.';
+      console.error('Login Error:', error);
+      const msg = error.response?.data?.error || error.message || 'Login failed. Please check credentials and connection.';
       Alert.alert('Login Failed', msg);
     } finally {
       setLoading(false);
