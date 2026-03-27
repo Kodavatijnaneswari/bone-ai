@@ -32,7 +32,7 @@ export default function LoginScreen() {
       if (response.data) {
         if (isAdmin) {
           await saveUserAuth(0, 'admin');
-          router.replace('/admin');
+          router.replace('/admin'); 
         } else {
           await saveUserAuth(response.data.id, 'user');
           router.replace('/(tabs)');
@@ -40,8 +40,9 @@ export default function LoginScreen() {
       }
     } catch (error: any) {
       console.error('Login Error:', error);
-      const msg = error.response?.data?.error || error.message || 'Login failed. Please check credentials and connection.';
-      Alert.alert('Login Failed', msg);
+      const serverMsg = error.response?.data?.error || error.response?.data?.message;
+      const msg = serverMsg || error.message || 'Login failed. Please check credentials and connection.';
+      Alert.alert('Login Failed', `Error: ${msg}\n\nURL: ${api.defaults.baseURL}${isAdmin ? ENDPOINTS.ADMIN_LOGIN : ENDPOINTS.LOGIN}`);
     } finally {
       setLoading(false);
     }
