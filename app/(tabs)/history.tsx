@@ -38,6 +38,7 @@ export default function HistoryScreen() {
         category: item.category,
         confidence: item.confidence,
         image_url: item.processed_image_url, 
+        prediction: item.prediction, 
       }
     });
   };
@@ -48,7 +49,7 @@ export default function HistoryScreen() {
         <FileText color={Colors.dark.primary} size={20} />
       </View>
       <View style={styles.infoBox}>
-        <Text style={styles.diseaseText}>{item.finding} - {item.category}</Text>
+        <Text style={styles.diseaseText}>{(item.prediction || item.finding)} - {item.category}</Text>
         <Text style={styles.dateText}>{new Date(item.uploaded_at).toLocaleString()}</Text>
       </View>
       <View style={styles.confidenceBox}>

@@ -79,6 +79,7 @@ export default function PredictScreen() {
           category: response.data.category,
           confidence: response.data.confidence,
           image_url: response.data.image_url,
+          prediction: response.data.prediction, 
         }
       });
       setImage(null);

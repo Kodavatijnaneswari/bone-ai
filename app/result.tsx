@@ -11,8 +11,8 @@ export default function ResultScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
   
-  const { finding, category, confidence, image_url } = params;
-  const isNormal = finding === 'Normal';
+  const { finding, category, confidence, image_url, prediction } = params;
+  const isNormal = finding === 'Normal' || prediction === 'Normal';
   const confidenceValue = parseFloat(confidence as string) || 0;
 
   return (
@@ -70,7 +70,7 @@ export default function ResultScreen() {
                     <View style={styles.statusInfo}>
                         <Text style={styles.statusLabel}>PRIMARY FINDING</Text>
                         <Text style={[styles.statusValue, { color: isNormal ? Colors.dark.success : Colors.dark.error }]}>
-                            {finding?.toString().toUpperCase() || 'ANALYSIS COMPLETE'}
+                            {(prediction || finding || 'ANALYSIS COMPLETE').toString().toUpperCase()}
                         </Text>
                     </View>
                 </View>
