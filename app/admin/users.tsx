@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert, Modal } from 'react-native';
 import { api, ENDPOINTS } from '@/api/config';
-import { Colors } from '@/constants/theme';
-import { UserCheck, UserX, Trash2, ArrowLeft, RefreshCw } from 'lucide-react-native';
+import { Colors, Layout } from '@/constants/theme';
+import { UserCheck, UserX, Trash2, ArrowLeft, Shield, Search } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
-export default function UserManagement() {
+export default function AdminUserManagement() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -27,58 +27,71 @@ export default function UserManagement() {
     }
   };
 
-  const handleAction = async (userId: number, action: string) => {
+  const handleAction = async (userId: number, action: 'activate' | 'deactivate' | 'delete') => {
     try {
-      setLoading(true);
-      const url = ENDPOINTS.ADMIN_USER_ACTION(userId, action);
-      await api.post(url);
+      if (action === 'delete') {
+        await api.delete(ENDPOINTS.ADMIN_USER_ACTION(userId, action));
+      } else {
+        await api.post(ENDPOINTS.ADMIN_USER_ACTION(userId, action));
+      }
       Alert.alert('Success', `User ${action}d successfully`);
       fetchUsers();
-    } catch (error: any) {
-      console.error(error);
-      const msg = error.response?.data?.error || `Failed to ${action} user`;
-      Alert.alert('Error', msg);
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      Alert.alert('Error', `Failed to ${action} user`);
     }
   };
 
   const renderUserItem = ({ item }: { item: any }) => (
     <View style={styles.userCard}>
-      <View style={styles.userInfo}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{item.username?.[0]?.toUpperCase()}</Text>
+      <View style={styles.userHeader}>
+        <View style={styles.userInfo}>
+            <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{item.name[0].toUpperCase()}</Text>
+            </View>
+            <View>
+                <Text style={styles.userName}>{item.name}</Text>
+                <Text style={styles.userId}>ID: {item.username}</Text>
+            </View>
         </View>
-        <View>
-          <Text style={styles.userName}>{item.username}</Text>
-          <Text style={styles.userEmail}>{item.email}</Text>
-          <View style={[styles.statusBadge, item.status === 'Activated' ? styles.statusActive : styles.statusWaiting]}>
-            <Text style={styles.statusText}>{item.status}</Text>
-          </View>
+        <View style={[styles.statusBadge, { backgroundColor: item.is_active ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)' }]}>
+            <Text style={[styles.statusText, { color: item.is_active ? Colors.dark.success : Colors.dark.error }]}>
+                {item.is_active ? 'Active' : 'Pending'}
+            </Text>
         </View>
       </View>
-      <View style={styles.actions}>
-        {item.status !== 'Activated' ? (
+
+      <View style={styles.userDetails}>
+        <Text style={styles.userDetailText}>Email: {item.email}</Text>
+        <Text style={styles.userDetailText}>Mobile: {item.mobile}</Text>
+      </View>
+
+      <View style={styles.cardActions}>
+        {!item.is_active ? (
           <TouchableOpacity 
+            activeOpacity={0.8}
             style={[styles.actionBtn, styles.activateBtn]} 
             onPress={() => handleAction(item.id, 'activate')}
           >
-            <UserCheck size={16} color="#FFF" />
+            <UserCheck size={16} color={Colors.dark.background} />
+            <Text style={styles.activateBtnText}>Authorize</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity 
-            style={[styles.actionBtn, styles.blockBtn]} 
-            onPress={() => handleAction(item.id, 'block')}
+            activeOpacity={0.7}
+            style={[styles.actionBtn, styles.deactivateBtn]} 
+            onPress={() => handleAction(item.id, 'deactivate')}
           >
-            <UserX size={16} color="#FFF" />
+            <UserX size={16} color={Colors.dark.text} />
+            <Text style={styles.deactivateBtnText}>Suspend</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity 
+          activeOpacity={0.7}
           style={[styles.actionBtn, styles.deleteBtn]} 
           onPress={() => {
             Alert.alert(
               "Delete User",
-              `Are you sure you want to delete ${item.username}?`,
+              "Are you sure you want to remove this analyst from the system?",
               [
                 { text: "Cancel", style: "cancel" },
                 { text: "Delete", style: "destructive", onPress: () => handleAction(item.id, 'delete') }
@@ -86,27 +99,30 @@ export default function UserManagement() {
             );
           }}
         >
-          <Trash2 size={16} color="#FFF" />
+          <Trash2 size={16} color={Colors.dark.error} />
         </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <ArrowLeft color="#FFF" size={24} />
+        <TouchableOpacity activeOpacity={0.7} style={styles.backButton} onPress={() => router.back()}>
+          <ArrowLeft size={24} color={Colors.dark.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>User Management</Text>
-        <TouchableOpacity onPress={fetchUsers} style={styles.refreshBtn}>
-          <RefreshCw color={Colors.dark.primary} size={20} />
-        </TouchableOpacity>
+        <Text style={styles.headerTitle}>User Access</Text>
+        <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.searchBtn}>
+                <Search size={20} color={Colors.dark.textSecondary} />
+            </TouchableOpacity>
+        </View>
       </View>
 
-      {loading && users.length === 0 ? (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={Colors.dark.primary} />
+      {loading ? (
+        <View style={styles.loadingBox}>
+            <ActivityIndicator size="large" color={Colors.dark.primary} />
+            <Text style={styles.loadingText}>Syncing Directory...</Text>
         </View>
       ) : (
         <FlatList
@@ -114,14 +130,16 @@ export default function UserManagement() {
           renderItem={renderUserItem}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No users found</Text>
+            <View style={styles.emptyBox}>
+                <Shield size={48} color={Colors.dark.border} />
+                <Text style={styles.emptyText}>No registration requests found</Text>
             </View>
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -132,116 +150,164 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingBottom: Layout.spacing.md,
+    paddingHorizontal: Layout.spacing.lg,
   },
-  backBtn: {
-    padding: 5,
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: Layout.radius.md,
+    backgroundColor: Colors.dark.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
   },
   headerTitle: {
-    color: '#FFF',
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '800',
+    color: Colors.dark.text,
+    letterSpacing: -0.5,
   },
-  refreshBtn: {
-    padding: 5,
+  headerRight: {
+    width: 44,
   },
-  loaderContainer: {
-    flex: 1,
+  searchBtn: {
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
   listContent: {
-    padding: 20,
+    padding: Layout.spacing.lg,
+    paddingBottom: 40,
   },
   userCard: {
+    backgroundColor: Colors.dark.surface,
+    borderRadius: Layout.radius.xl,
+    padding: Layout.spacing.lg,
+    marginBottom: Layout.spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+  },
+  userHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#151E2D',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#232E42',
+    alignItems: 'flex-start',
+    marginBottom: Layout.spacing.lg,
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
+    gap: 12,
   },
   avatar: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
-    backgroundColor: 'rgba(70, 255, 210, 0.1)',
+    width: 44,
+    height: 44,
+    borderRadius: Layout.radius.md,
+    backgroundColor: Colors.dark.surfaceElevated,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 15,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
   },
   avatarText: {
     color: Colors.dark.primary,
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '800',
   },
   userName: {
-    color: '#FFF',
+    color: Colors.dark.text,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
-  userEmail: {
-    color: '#9BA1A6',
+  userId: {
+    color: Colors.dark.textSecondary,
     fontSize: 12,
     marginTop: 2,
   },
   statusBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginTop: 6,
-  },
-  statusActive: {
-    backgroundColor: 'rgba(76, 207, 100, 0.2)',
-  },
-  statusWaiting: {
-    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: Layout.radius.sm,
   },
   statusText: {
     fontSize: 10,
-    fontWeight: 'bold',
-    color: '#FFF',
+    fontWeight: '800',
+    textTransform: 'uppercase',
   },
-  actions: {
+  userDetails: {
+    padding: Layout.spacing.md,
+    backgroundColor: Colors.dark.background,
+    borderRadius: Layout.radius.md,
+    marginBottom: Layout.spacing.lg,
+  },
+  userDetailText: {
+    color: Colors.dark.textSecondary,
+    fontSize: 12,
+    marginVertical: 2,
+  },
+  cardActions: {
     flexDirection: 'row',
-    gap: 10,
+    gap: Layout.spacing.sm,
   },
   actionBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Layout.spacing.md,
+    borderRadius: Layout.radius.md,
+    gap: 8,
   },
   activateBtn: {
-    backgroundColor: '#4CCF64',
+    flex: 1,
+    backgroundColor: Colors.dark.primary,
   },
-  blockBtn: {
-    backgroundColor: '#FFD700',
+  activateBtnText: {
+    color: Colors.dark.background,
+    fontWeight: '800',
+    fontSize: 13,
+  },
+  deactivateBtn: {
+    flex: 1,
+    backgroundColor: Colors.dark.surfaceElevated,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+  },
+  deactivateBtnText: {
+    color: Colors.dark.text,
+    fontWeight: '700',
+    fontSize: 13,
   },
   deleteBtn: {
-    backgroundColor: '#FF4D4D',
+    width: 52,
+    backgroundColor: 'rgba(239, 68, 68, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.1)',
   },
-  emptyContainer: {
+  loadingBox: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    color: Colors.dark.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 1,
+  },
+  emptyBox: {
     marginTop: 100,
     alignItems: 'center',
+    gap: Layout.spacing.lg,
   },
   emptyText: {
-    color: '#9BA1A6',
-    fontSize: 16,
+    color: Colors.dark.textSecondary,
+    fontSize: 14,
+    textAlign: 'center',
   },
 });

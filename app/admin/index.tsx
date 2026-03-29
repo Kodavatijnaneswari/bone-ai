@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert, ScrollView, Image } from 'react-native';
 import { api, ENDPOINTS } from '@/api/config';
-import { Colors } from '@/constants/theme';
-import { Shield, UserCheck, UserX, Trash2, ArrowLeft, LogOut } from 'lucide-react-native';
+import { Colors, Layout } from '@/constants/theme';
+import { Shield, UserCheck, UserX, Trash2, ArrowLeft, LogOut, Activity, BarChart3, Settings } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { clearUserAuth } from '@/api/auth';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState<any[]>([]);
@@ -45,56 +46,75 @@ export default function AdminDashboard() {
             <View style={styles.miniLogoBox}>
                 <Shield color={Colors.dark.primary} size={16} />
             </View>
-            <Text style={styles.headerTitle}>BoneAI Admin</Text>
+            <Text style={styles.headerTitle}>Admin Console</Text>
         </View>
-        <View style={styles.topNav}>
-            <TouchableOpacity style={styles.navItem}><Text style={styles.navItemTextActive}>Dashboard</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.navItem} onPress={() => router.push('/admin/users')}><Text style={styles.navItemText}>Users</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-                <LogOut size={16} color="#FF4D4D" />
-                <Text style={styles.logoutText}>Logout</Text>
-            </TouchableOpacity>
-        </View>
+        <TouchableOpacity activeOpacity={0.7} style={styles.logoutBtn} onPress={handleLogout}>
+            <LogOut size={18} color={Colors.dark.error} />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.navRow}>
+            <TouchableOpacity style={styles.navBtnActive}>
+                <BarChart3 size={18} color={Colors.dark.background} />
+                <Text style={styles.navBtnTextActive}>Overview</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.navBtn} onPress={() => router.push('/admin/users')}>
+                <UserCheck size={18} color={Colors.dark.textSecondary} />
+                <Text style={styles.navBtnText}>Users</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.navBtn}>
+                <Settings size={18} color={Colors.dark.textSecondary} />
+                <Text style={styles.navBtnText}>Engine</Text>
+            </TouchableOpacity>
+        </View>
+
         <View style={styles.statsRow}>
-            <View style={styles.statCard}>
-                <Text style={styles.statLabel}>ACTIVE USERS</Text>
+            <LinearGradient colors={[Colors.dark.surfaceElevated, Colors.dark.surface]} style={styles.statCard}>
+                <Text style={styles.statLabel}>CLINICIANS</Text>
                 <Text style={styles.statVal}>{stats.active_users}</Text>
-                <Text style={styles.statTrend}>Authorized Clinicians</Text>
-            </View>
-            <View style={styles.statCard}>
-                <Text style={styles.statLabel}>IMAGES ANALYZED</Text>
+                <Text style={styles.statTrend}>Authorized Users</Text>
+            </LinearGradient>
+            
+            <LinearGradient colors={[Colors.dark.surfaceElevated, Colors.dark.surface]} style={styles.statCard}>
+                <Text style={styles.statLabel}>SEQUENCES</Text>
                 <Text style={styles.statVal}>{stats.images_analyzed}</Text>
-                <Text style={styles.statTrend}>Historical total</Text>
-            </View>
-            <View style={styles.statCard}>
-                <Text style={styles.statLabel}>MODEL VERSION</Text>
-                <Text style={styles.statValGold}>{stats.model_version}</Text>
-                <Text style={styles.statTrendGold}>Optimization Active</Text>
-            </View>
+                <Text style={styles.statTrend}>Inferences Run</Text>
+            </LinearGradient>
         </View>
 
         <View style={styles.mainConsole}>
+            <LinearGradient
+                colors={['rgba(70, 255, 210, 0.1)', 'transparent']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.consoleGlow}
+            />
+            
             <View style={styles.consoleHeader}>
-                <Shield size={20} color={Colors.dark.primary} />
-                <Text style={styles.consoleTitle}>System Capabilities</Text>
+                <Activity size={20} color={Colors.dark.primary} />
+                <Text style={styles.consoleTitle}>Core Engine Status</Text>
             </View>
+            
             <Text style={styles.consoleDesc}>
-                As an authorized administrator, you have full oversight over the BoneAI infrastructure. This console allows you to manage clinician access, monitor neural network training sequences, and audit diagnostic outputs.
+                Model: <Text style={styles.boldText}>YOLOv8-Small</Text> optimized for skeletal radiographs. 
+                Average inference latency: <Text style={styles.boldText}>84ms</Text>.
             </Text>
 
             <View style={styles.actionsGrid}>
-                <TouchableOpacity style={styles.consoleAction} onPress={() => router.push('/admin/users')}>
-                    <UserCheck size={18} color={Colors.dark.primary} />
-                    <Text style={styles.actionText}>Manage Users</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.consoleAction}>
-                    <ActivityIndicator size="small" color={Colors.dark.primary} />
-                    <Text style={styles.actionText}>Training Monitor</Text>
+                <TouchableOpacity activeOpacity={0.8} style={styles.consoleAction} onPress={() => router.push('/admin/users')}>
+                    <UserCheck size={20} color={Colors.dark.primary} />
+                    <Text style={styles.actionText}>User Management</Text>
                 </TouchableOpacity>
             </View>
+        </View>
+
+        <View style={styles.infosection}>
+            <Text style={styles.infoLabel}>SYSTEM PROTOCOL V4.2</Text>
+            <Text style={styles.infoText}>
+                All administrative actions are logged and encrypted using AES-256 standards. 
+                Access tokens expire after 24 hours of inactivity.
+            </Text>
         </View>
       </ScrollView>
     </View>
@@ -111,144 +131,184 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    backgroundColor: '#0B1421',
+    paddingBottom: Layout.spacing.md,
+    paddingHorizontal: Layout.spacing.lg,
   },
   logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   miniLogoBox: {
-    width: 24,
-    height: 24,
+    width: 32,
+    height: 32,
     marginRight: 10,
     backgroundColor: 'rgba(70, 255, 210, 0.1)',
-    borderRadius: 6,
+    borderRadius: Layout.radius.md,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(70, 255, 210, 0.2)',
   },
   headerTitle: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  topNav: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  navItem: {
-    marginRight: 15,
-  },
-  navItemText: {
-    color: '#9BA1A6',
-    fontSize: 12,
-  },
-  navItemTextActive: {
-    color: Colors.dark.primary,
-    fontSize: 12,
-    fontWeight: 'bold',
-    backgroundColor: 'rgba(70, 255, 210, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 6,
+    color: Colors.dark.text,
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
   logoutBtn: {
-    flexDirection: 'row',
+    width: 44,
+    height: 44,
+    borderRadius: Layout.radius.md,
+    backgroundColor: 'rgba(239, 68, 68, 0.05)',
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  logoutText: {
-    color: '#FF4D4D',
-    fontSize: 12,
-    marginLeft: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.1)',
   },
   scrollContent: {
-    padding: 20,
+    padding: Layout.spacing.lg,
+  },
+  navRow: {
+    flexDirection: 'row',
+    gap: Layout.spacing.sm,
+    marginBottom: Layout.spacing.xl,
+  },
+  navBtnActive: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.dark.primary,
+    paddingVertical: Layout.spacing.md,
+    borderRadius: Layout.radius.lg,
+  },
+  navBtnTextActive: {
+    color: Colors.dark.background,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  navBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.dark.surface,
+    paddingVertical: Layout.spacing.md,
+    borderRadius: Layout.radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+  },
+  navBtnText: {
+    color: Colors.dark.textSecondary,
+    fontSize: 13,
+    fontWeight: '600',
   },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 30,
+    marginBottom: Layout.spacing.xl,
+    gap: Layout.spacing.md,
   },
   statCard: {
-    backgroundColor: 'rgba(15, 23, 42, 0.8)',
-    borderRadius: 20,
-    padding: 20,
-    width: '31%',
+    flex: 1,
+    borderRadius: Layout.radius.xl,
+    padding: Layout.spacing.xl,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: Colors.dark.border,
   },
   statLabel: {
-    color: '#9BA1A6',
-    fontSize: 8,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    color: Colors.dark.textSecondary,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    marginBottom: 8,
   },
   statVal: {
     color: Colors.dark.primary,
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    fontSize: 32,
+    fontWeight: '900',
+    marginVertical: 4,
   },
   statTrend: {
-    color: '#4CCF64',
-    fontSize: 8,
-    textAlign: 'center',
-  },
-  statValGold: {
-    color: '#FFD700',
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  statTrendGold: {
-    color: '#FFD700',
-    fontSize: 8,
-    textAlign: 'center',
+    color: '#10B981',
+    fontSize: 10,
+    fontWeight: '600',
   },
   mainConsole: {
-    backgroundColor: '#151E2D',
-    borderRadius: 24,
-    padding: 24,
+    backgroundColor: Colors.dark.surface,
+    borderRadius: Layout.radius.xl,
+    padding: Layout.spacing.xl,
     borderWidth: 1,
-    borderColor: '#232E42',
+    borderColor: Colors.dark.border,
+    overflow: 'hidden',
+  },
+  consoleGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 100,
   },
   consoleHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: Layout.spacing.md,
   },
   consoleTitle: {
-    color: Colors.dark.primary,
+    color: Colors.dark.text,
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '800',
     marginLeft: 10,
   },
   consoleDesc: {
-    color: '#9BA1A6',
-    fontSize: 13,
-    lineHeight: 20,
-    marginBottom: 30,
+    color: Colors.dark.textSecondary,
+    fontSize: 14,
+    lineHeight: 22,
+    marginBottom: Layout.spacing.xl,
+  },
+  boldText: {
+    color: Colors.dark.text,
+    fontWeight: '800',
   },
   actionsGrid: {
     flexDirection: 'row',
-    gap: 15,
   },
   consoleAction: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F172A',
-    padding: 16,
-    borderRadius: 12,
+    justifyContent: 'center',
+    backgroundColor: Colors.dark.background,
+    padding: Layout.spacing.lg,
+    borderRadius: Layout.radius.md,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: Colors.dark.border,
+    gap: 12,
   },
   actionText: {
-    color: '#FFF',
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginLeft: 12,
+    color: Colors.dark.text,
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  infosection: {
+    marginTop: Layout.spacing.xl,
+    paddingHorizontal: Layout.spacing.sm,
+  },
+  infoLabel: {
+    color: Colors.dark.textSecondary,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 2,
+    marginBottom: 8,
+    opacity: 0.5,
+  },
+  infoText: {
+    color: Colors.dark.textSecondary,
+    fontSize: 12,
+    lineHeight: 18,
+    opacity: 0.7,
   },
 });

@@ -1,103 +1,139 @@
 import React from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity, ScrollView, Platform, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Colors } from '@/constants/theme';
-import { ArrowLeft, CheckCircle2, AlertCircle, Share2, Download } from 'lucide-react-native';
+import { Colors, Layout } from '@/constants/theme';
+import { ArrowLeft, CheckCircle2, AlertCircle, Share2, Download, Zap, Info, ChevronLeft } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width } = Dimensions.get('window');
 
 export default function ResultScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
   
-  // Parse params
   const { finding, category, confidence, image_url } = params;
   const isNormal = finding === 'Normal';
+  const confidenceValue = parseFloat(confidence as string) || 0;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <View style={styles.logoRow}>
-            <Image source={require('@/assets/images/react-logo.png')} style={styles.miniLogo} />
-            <Text style={styles.headerTitle}>BoneAI Pro</Text>
-        </View>
-        <View style={styles.navIcons}>
-            <TouchableOpacity onPress={() => router.replace('/(tabs)')}><Text style={styles.navText}>Dashboard</Text></TouchableOpacity>
-            <TouchableOpacity onPress={() => router.replace('/(tabs)/history')}><Text style={styles.navText}>History</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.newBtn}><Text style={styles.newBtnText}>New Detection</Text></TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.heroSection}>
-          <Text style={styles.heroTitle}>Advanced Bone Abnormality Detection</Text>
-          <Text style={styles.heroSubtitle}>
-              Leveraging state-of-the-art <Text style={styles.boldText}>YOLOv8 deep learning</Text>, our system provides real-time, automated 
-              analysis of bone radiographs. Whether detecting subtle fractures or anatomical dislocations, BoneAI Pro 
-              utilizes high-precision neural networks to assist clinicians in making faster, data-driven diagnostic decisions.
-          </Text>
-
-          <View style={styles.statsCards}>
-            <View style={styles.mStatCard}>
-                <Text style={styles.mStatVal}>98%</Text>
-                <Text style={styles.mStatLabel}>Detection Sensitivity</Text>
-            </View>
-            <View style={styles.mStatCard}>
-                <Text style={styles.mStatVal}>0.1s</Text>
-                <Text style={styles.mStatLabel}>Inference Speed</Text>
-            </View>
-          </View>
-
-          <View style={styles.actionRowSub}>
-            <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.back()}>
-                <Text style={styles.secondaryBtnText}>← Analyze Another</Text>
+    <View style={styles.container}>
+      <ScrollView 
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+            <TouchableOpacity 
+                activeOpacity={0.7} 
+                style={styles.backButton} 
+                onPress={() => router.back()}
+            >
+                <ChevronLeft color={Colors.dark.text} size={28} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.primaryBtn} onPress={() => router.replace('/(tabs)')}>
-                <Text style={styles.primaryBtnText}>Return to Dashboard</Text>
-            </TouchableOpacity>
-          </View>
-      </View>
-
-      <View style={styles.imageContainer}>
-        {image_url ? (
-          <Image source={{ uri: image_url as string }} style={styles.resultImage} resizeMode="contain" />
-        ) : (
-          <View style={styles.imagePlaceholder}>
-            <Text style={styles.placeholderText}>Image Preview Unavailable</Text>
-          </View>
-        )}
-      </View>
-
-      <View style={styles.resultCard}>
-        <View style={styles.statusRow}>
-          {isNormal ? (
-            <CheckCircle2 color="#46FFD2" size={32} />
-          ) : (
-            <AlertCircle color="#FF4D4D" size={32} />
-          )}
-          <View style={styles.statusInfo}>
-            <Text style={styles.statusLabel}>DIAGNOSTIC FINDING</Text>
-            <Text style={[styles.statusValue, { color: isNormal ? '#46FFD2' : '#FF4D4D' }]}>
-              {finding || 'Analysis Result'}
-            </Text>
-          </View>
+            <Text style={styles.headerTitle}>Diagnostic Report</Text>
+            <View style={styles.headerActionBox}>
+                <TouchableOpacity style={styles.iconAction}><Share2 size={20} color={Colors.dark.textSecondary} /></TouchableOpacity>
+            </View>
         </View>
 
-        {!isNormal && (
-          <View style={styles.detailBox}>
-            <Text style={styles.detailLabel}>FRACTURE TYPE</Text>
-            <Text style={styles.detailValue}>{category || 'Detected'}</Text>
-          </View>
-        )}
-
-        <View style={styles.detailBox}>
-          <Text style={styles.detailLabel}>ANALYSIS CONFIDENCE</Text>
-          <View style={styles.progressContainer}>
-            <View style={[styles.progressBar, { width: `${(parseFloat(confidence as string) || 0) * 100}%` }]} />
-            <Text style={styles.progressText}>
-              {((parseFloat(confidence as string) || 0) * 100).toFixed(2)}%
-            </Text>
-          </View>
+        <View style={styles.imageSection}>
+            <View style={styles.imageFrame}>
+                {image_url ? (
+                  <Image source={{ uri: image_url as string }} style={styles.resultImage} resizeMode="contain" />
+                ) : (
+                  <View style={styles.imagePlaceholder}>
+                    <Zap size={48} color={Colors.dark.border} />
+                    <Text style={styles.placeholderText}>Imaging Data Unavailable</Text>
+                  </View>
+                )}
+                
+                <LinearGradient
+                    colors={['transparent', 'rgba(4, 7, 13, 0.8)']}
+                    style={styles.imageOverlay}
+                />
+                
+                <View style={styles.imageBadge}>
+                    <Text style={styles.badgeText}>ENHANCED PREVIEW</Text>
+                </View>
+            </View>
         </View>
-      </View>
-    </ScrollView>
+
+        <View style={styles.reportSection}>
+            <View style={[styles.resultCard, isNormal ? styles.cardNormal : styles.cardAbnormal]}>
+                <View style={styles.statusRow}>
+                    <View style={[styles.statusIconBox, { backgroundColor: isNormal ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)' }]}>
+                        {isNormal ? (
+                            <CheckCircle2 color={Colors.dark.success} size={24} />
+                        ) : (
+                            <AlertCircle color={Colors.dark.error} size={24} />
+                        )}
+                    </View>
+                    <View style={styles.statusInfo}>
+                        <Text style={styles.statusLabel}>PRIMARY FINDING</Text>
+                        <Text style={[styles.statusValue, { color: isNormal ? Colors.dark.success : Colors.dark.error }]}>
+                            {finding?.toString().toUpperCase() || 'ANALYSIS COMPLETE'}
+                        </Text>
+                    </View>
+                </View>
+
+                {!isNormal && (
+                    <View style={styles.detailRow}>
+                        <View style={styles.detailItem}>
+                            <Text style={styles.detailLabel}>CLASSIFICATION</Text>
+                            <Text style={styles.detailValue}>{category || 'Detected'}</Text>
+                        </View>
+                    </View>
+                )}
+
+                <View style={styles.confidenceSection}>
+                    <View style={styles.confidenceHeader}>
+                        <Text style={styles.detailLabel}>ENGINE CONFIDENCE</Text>
+                        <Text style={[styles.confidenceText, { color: isNormal ? Colors.dark.success : Colors.dark.primary }]}>
+                            {(confidenceValue * 100).toFixed(1)}%
+                        </Text>
+                    </View>
+                    <View style={styles.progressContainer}>
+                        <View style={[styles.progressBg]} />
+                        <View 
+                            style={[
+                                styles.progressBar, 
+                                { 
+                                    width: `${confidenceValue * 100}%`,
+                                    backgroundColor: isNormal ? Colors.dark.success : Colors.dark.primary 
+                                }
+                            ]} 
+                        />
+                    </View>
+                </View>
+            </View>
+
+            <View style={styles.infoBox}>
+                <Info size={16} color={Colors.dark.textSecondary} />
+                <Text style={styles.infoText}>
+                    This automated analysis is intended for clinical assistance only. Final diagnostics must be verified by a board-certified radiologist.
+                </Text>
+            </View>
+
+            <View style={styles.actionRow}>
+                <TouchableOpacity 
+                    activeOpacity={0.7}
+                    style={styles.secondaryBtn} 
+                    onPress={() => router.back()}
+                >
+                    <ArrowLeft size={18} color={Colors.dark.text} />
+                    <Text style={styles.secondaryBtnText}>New Scan</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                    activeOpacity={0.8}
+                    style={styles.primaryBtn}
+                    onPress={() => router.replace('/(tabs)')}
+                >
+                    <Text style={styles.primaryBtnText}>Dashboard</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -107,196 +143,240 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.background,
   },
   content: {
-    paddingBottom: 60,
+    paddingBottom: Layout.spacing.xxl,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    backgroundColor: '#0F172A',
-    borderBottomWidth: 1,
-    borderColor: '#1E293B',
+    paddingBottom: Layout.spacing.md,
+    paddingHorizontal: Layout.spacing.lg,
   },
-  logoRow: {
-    flexDirection: 'row',
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: Layout.radius.md,
+    backgroundColor: Colors.dark.surface,
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  miniLogo: {
-    width: 24,
-    height: 24,
-    marginRight: 10,
-    tintColor: '#46FFD2',
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFF',
+    fontWeight: '800',
+    color: Colors.dark.text,
   },
-  navIcons: {
+  headerActionBox: {
     flexDirection: 'row',
+  },
+  iconAction: {
+    width: 44,
+    height: 44,
+    borderRadius: Layout.radius.md,
+    backgroundColor: Colors.dark.surface,
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  navText: {
-    color: '#9BA1A6',
-    fontSize: 12,
-    marginRight: 15,
-  },
-  newBtn: {
-    backgroundColor: '#46FFD2',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  newBtnText: {
-    color: '#0B1421',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  heroSection: {
-    padding: 30,
-    alignItems: 'center',
-  },
-  heroTitle: {
-    color: '#FFF',
-    fontSize: 32,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  heroSubtitle: {
-    color: '#9BA1A6',
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 30,
-  },
-  boldText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-  },
-  statsCards: {
-    flexDirection: 'row',
-    gap: 15,
-    marginBottom: 30,
-  },
-  mStatCard: {
-    backgroundColor: 'rgba(70, 255, 210, 0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(70, 255, 210, 0.2)',
-    padding: 15,
-    borderRadius: 12,
-    width: 140,
-    alignItems: 'center',
+    borderColor: Colors.dark.border,
   },
-  mStatVal: {
-    color: '#FFF',
-    fontSize: 24,
-    fontWeight: 'bold',
+  imageSection: {
+    padding: Layout.spacing.lg,
   },
-  mStatLabel: {
-    color: '#9BA1A6',
-    fontSize: 10,
-    marginTop: 4,
-  },
-  actionRowSub: {
-    flexDirection: 'row',
-    gap: 15,
-  },
-  secondaryBtn: {
-    backgroundColor: '#232E42',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 30,
-  },
-  secondaryBtnText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-  },
-  primaryBtn: {
-    backgroundColor: '#46FFD2',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 30,
-  },
-  primaryBtnText: {
-    color: '#0B1421',
-    fontWeight: 'bold',
-  },
-  imageContainer: {
+  imageFrame: {
     width: '100%',
-    aspectRatio: 1.2,
+    aspectRatio: 1,
+    borderRadius: Layout.radius.xl,
+    overflow: 'hidden',
     backgroundColor: '#000',
-    marginVertical: 20,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
   },
   resultImage: {
     width: '100%',
     height: '100%',
   },
-  resultCard: {
-    margin: 20,
-    padding: 24,
-    backgroundColor: Colors.dark.surface,
-    borderRadius: 24,
+  imageOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+  },
+  imageBadge: {
+    position: 'absolute',
+    top: Layout.spacing.md,
+    right: Layout.spacing.md,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: Layout.spacing.sm,
+    paddingVertical: 4,
+    borderRadius: Layout.radius.sm,
     borderWidth: 1,
-    borderColor: '#232E42',
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  badgeText: {
+    color: Colors.dark.text,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  imagePlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: Layout.spacing.md,
+  },
+  placeholderText: {
+    color: Colors.dark.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  reportSection: {
+    paddingHorizontal: Layout.spacing.lg,
+  },
+  resultCard: {
+    backgroundColor: Colors.dark.surface,
+    borderRadius: Layout.radius.xl,
+    padding: Layout.spacing.xl,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  cardNormal: {
+    borderColor: 'rgba(16, 185, 129, 0.2)',
+  },
+  cardAbnormal: {
+    borderColor: 'rgba(239, 68, 68, 0.2)',
   },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: Layout.spacing.xl,
+  },
+  statusIconBox: {
+    width: 60,
+    height: 60,
+    borderRadius: Layout.radius.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   statusInfo: {
-    marginLeft: 16,
+    marginLeft: Layout.spacing.md,
   },
   statusLabel: {
-    color: '#9BA1A6',
-    fontSize: 10,
-    fontWeight: 'bold',
+    color: Colors.dark.textSecondary,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
   },
   statusValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 28,
+    fontWeight: '900',
+    letterSpacing: -0.5,
   },
-  detailBox: {
-    marginTop: 20,
+  detailRow: {
+    marginBottom: Layout.spacing.xl,
+    paddingTop: Layout.spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.05)',
   },
+  detailItem: {},
   detailLabel: {
-    color: '#9BA1A6',
-    fontSize: 10,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    color: Colors.dark.textSecondary,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
+    marginBottom: 6,
   },
   detailValue: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: Colors.dark.text,
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  confidenceSection: {
+    marginTop: Layout.spacing.sm,
+  },
+  confidenceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Layout.spacing.sm,
+  },
+  confidenceText: {
+    fontSize: 16,
+    fontWeight: '900',
   },
   progressContainer: {
-    height: 12,
-    backgroundColor: '#1E293B',
-    borderRadius: 6,
+    height: 8,
+    width: '100%',
+    borderRadius: Layout.radius.full,
     overflow: 'hidden',
-    marginTop: 8,
+  },
+  progressBg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.05)',
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#46FFD2',
+    borderRadius: Layout.radius.full,
   },
-  progressText: {
-    color: '#46FFD2',
-    fontWeight: 'bold',
+  infoBox: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(148, 163, 184, 0.05)',
+    padding: Layout.spacing.md,
+    borderRadius: Layout.radius.md,
+    marginTop: Layout.spacing.xl,
+    gap: Layout.spacing.sm,
+  },
+  infoText: {
+    flex: 1,
+    color: Colors.dark.textSecondary,
     fontSize: 12,
-    marginTop: 8,
-    textAlign: 'center',
+    lineHeight: 18,
+    fontStyle: 'italic',
   },
-  imagePlaceholder: {
-    padding: 40,
+  actionRow: {
+    flexDirection: 'row',
+    marginTop: Layout.spacing.xxl,
+    gap: Layout.spacing.md,
+  },
+  secondaryBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    height: 60,
+    borderRadius: Layout.radius.lg,
+    backgroundColor: Colors.dark.surface,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+  },
+  secondaryBtnText: {
+    color: Colors.dark.text,
+    fontWeight: '800',
+    fontSize: 15,
+  },
+  primaryBtn: {
+    flex: 1,
+    height: 60,
+    borderRadius: Layout.radius.lg,
+    backgroundColor: Colors.dark.primary,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  placeholderText: {
-    color: '#444',
+  primaryBtnText: {
+    color: Colors.dark.background,
+    fontWeight: '800',
+    fontSize: 15,
   },
 });

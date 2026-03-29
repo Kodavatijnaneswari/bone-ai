@@ -1,59 +1,63 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
+import { Platform, Dimensions } from 'react-native';
 
-import { Platform } from 'react-native';
-
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+const { width, height } = Dimensions.get('window');
 
 export const Colors = {
-  light: {
-    text: '#11181C',
-    background: '#0B1421',
-    tint: '#46FFD2',
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: '#46FFD2',
-    primary: '#46FFD2', // Mint Green
-    admin: '#007BFF',   // Admin Blue
-  },
   dark: {
-    text: '#FFFFFF',
-    background: '#0B1421',
-    tint: '#46FFD2',
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: '#46FFD2',
-    primary: '#46FFD2', // Mint Green
-    admin: '#007BFF',   // Admin Blue
-    surface: '#151E2D', // Card background
-    accent: '#46FFD2',
+    background: '#04070D', // Deeper cinematic black
+    surface: '#0E1521',    // Slightly lighter for cards
+    surfaceElevated: '#151E2E',
+    primary: '#46FFD2',    // Signature Mint Green
+    secondary: '#232E42',
+    accent: '#818CF8',      // Soft Indigo for variety
+    text: '#F8FAFC',
+    textSecondary: '#94A3B8',
+    border: 'rgba(255, 255, 255, 0.08)',
+    error: '#EF4444',
+    success: '#10B981',
+    admin: '#3B82F6',
+    glass: 'rgba(14, 21, 33, 0.8)',
   },
+  light: {
+    background: '#F8FAFC',
+    surface: '#FFFFFF',
+    primary: '#0D9488',
+    text: '#0F172A',
+    textSecondary: '#64748B',
+    border: '#E2E8F0',
+  }
+};
+
+export const Layout = {
+  window: { width, height },
+  isSmallDevice: width < 375,
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 16,
+    lg: 24,
+    xl: 32,
+    xxl: 48,
+  },
+  radius: {
+    sm: 8,
+    md: 12,
+    lg: 20,
+    xl: 24,
+    full: 9999,
+  }
 };
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
+    sans: 'System',
+    mono: 'Courier',
   },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
+  android: {
+    sans: 'sans-serif',
     mono: 'monospace',
   },
-  web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-  },
+  default: {
+    sans: 'System',
+  }
 });
