@@ -27,14 +27,32 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       const response = await api.post(ENDPOINTS.REGISTER, form);
-      if (response.status === 201) {
+      if (response.status === 201 || response.status === 200) {
         Alert.alert('Success', 'Registration successful! Please wait for admin activation.', [
           { text: 'OK', onPress: () => router.back() }
         ]);
       }
     } catch (error: any) {
-      const msg = error.response?.data ? JSON.stringify(error.response.data) : 'Registration failed.';
-      Alert.alert('Error', msg);
+      console.error('Registration Error:', error);
+      let errorMsg = 'Registration failed. Please try again.';
+      
+      if (error.response?.data) {
+        const data = error.response.data;
+        if (typeof data === 'object') {
+          // Flatten nested error objects from Django/DRF
+          const messages = Object.keys(data).map(key => {
+            const val = data[key];
+            return `${key}: ${Array.isArray(val) ? val.join(', ') : val}`;
+          });
+          errorMsg = messages.join('\n');
+        } else if (typeof data === 'string') {
+          errorMsg = data;
+        }
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      
+      Alert.alert('Registration Failed', errorMsg);
     } finally {
       setLoading(false);
     }

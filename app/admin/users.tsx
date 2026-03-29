@@ -18,16 +18,19 @@ export default function AdminUserManagement() {
     try {
       setLoading(true);
       const response = await api.get(ENDPOINTS.ADMIN_USERS);
-      setUsers(response.data);
+      // Ensure users is always an array
+      setUsers(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Failed to fetch users');
+      setUsers([]);
     } finally {
       setLoading(false);
     }
   };
 
   const handleAction = async (userId: number, action: 'activate' | 'deactivate' | 'delete') => {
+    if (!userId) return;
     try {
       if (action === 'delete') {
         await api.delete(ENDPOINTS.ADMIN_USER_ACTION(userId, action));
@@ -41,69 +44,76 @@ export default function AdminUserManagement() {
     }
   };
 
-  const renderUserItem = ({ item }: { item: any }) => (
-    <View style={styles.userCard}>
-      <View style={styles.userHeader}>
-        <View style={styles.userInfo}>
-            <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{item.name[0].toUpperCase()}</Text>
-            </View>
-            <View>
-                <Text style={styles.userName}>{item.name}</Text>
-                <Text style={styles.userId}>ID: {item.username}</Text>
-            </View>
+  const renderUserItem = ({ item }: { item: any }) => {
+    if (!item) return null;
+    const displayName = item.name || 'Anonymous User';
+    const init = displayName[0]?.toUpperCase() || '?';
+    
+    return (
+      <View style={styles.userCard}>
+        <View style={styles.userHeader}>
+          <View style={styles.userInfo}>
+              <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>{init}</Text>
+              </View>
+              <View>
+                  <Text style={styles.userName}>{displayName}</Text>
+                  <Text style={styles.userId}>ID: {item.username || 'N/A'}</Text>
+              </View>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: item.is_active ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)' }]}>
+              <Text style={[styles.statusText, { color: item.is_active ? Colors.dark.success : Colors.dark.error }]}>
+                  {item.is_active ? 'Active' : 'Pending'}
+              </Text>
+          </View>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: item.is_active ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)' }]}>
-            <Text style={[styles.statusText, { color: item.is_active ? Colors.dark.success : Colors.dark.error }]}>
-                {item.is_active ? 'Active' : 'Pending'}
-            </Text>
+
+        <View style={styles.userDetails}>
+          <Text style={styles.userDetailText}>Email: {item.email || 'N/A'}</Text>
+          <Text style={styles.userDetailText}>Mobile: {item.mobile || 'N/A'}</Text>
         </View>
-      </View>
 
-      <View style={styles.userDetails}>
-        <Text style={styles.userDetailText}>Email: {item.email}</Text>
-        <Text style={styles.userDetailText}>Mobile: {item.mobile}</Text>
-      </View>
-
-      <View style={styles.cardActions}>
-        {!item.is_active ? (
-          <TouchableOpacity 
-            activeOpacity={0.8}
-            style={[styles.actionBtn, styles.activateBtn]} 
-            onPress={() => handleAction(item.id, 'activate')}
-          >
-            <UserCheck size={16} color={Colors.dark.background} />
-            <Text style={styles.activateBtnText}>Authorize</Text>
-          </TouchableOpacity>
-        ) : (
+        <View style={styles.cardActions}>
+          {!item.is_active ? (
+            <TouchableOpacity 
+              activeOpacity={0.8}
+              style={[styles.actionBtn, styles.activateBtn]} 
+              onPress={() => handleAction(item.id, 'activate')}
+            >
+              <UserCheck size={16} color={Colors.dark.background} />
+              <Text style={styles.activateBtnText}>Authorize</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity 
+              activeOpacity={0.7}
+              style={[styles.actionBtn, styles.deactivateBtn]} 
+              onPress={() => handleAction(item.id, 'deactivate')}
+            >
+              <UserX size={16} color={Colors.dark.text} />
+              <Text style={styles.deactivateBtnText}>Suspend</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity 
             activeOpacity={0.7}
-            style={[styles.actionBtn, styles.deactivateBtn]} 
-            onPress={() => handleAction(item.id, 'deactivate')}
+            style={[styles.actionBtn, styles.deleteBtn]} 
+            onPress={() => {
+              if (!item.id) return;
+              Alert.alert(
+                "Delete User",
+                `Are you sure you want to remove ${displayName} from the system?`,
+                [
+                  { text: "Cancel", style: "cancel" },
+                  { text: "Delete", style: "destructive", onPress: () => handleAction(item.id, 'delete') }
+                ]
+              );
+            }}
           >
-            <UserX size={16} color={Colors.dark.text} />
-            <Text style={styles.deactivateBtnText}>Suspend</Text>
+            <Trash2 size={16} color={Colors.dark.error} />
           </TouchableOpacity>
-        )}
-        <TouchableOpacity 
-          activeOpacity={0.7}
-          style={[styles.actionBtn, styles.deleteBtn]} 
-          onPress={() => {
-            Alert.alert(
-              "Delete User",
-              "Are you sure you want to remove this analyst from the system?",
-              [
-                { text: "Cancel", style: "cancel" },
-                { text: "Delete", style: "destructive", onPress: () => handleAction(item.id, 'delete') }
-              ]
-            );
-          }}
-        >
-          <Trash2 size={16} color={Colors.dark.error} />
-        </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -128,7 +138,7 @@ export default function AdminUserManagement() {
         <FlatList
           data={users}
           renderItem={renderUserItem}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => (item.id || Math.random()).toString()}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
