@@ -12,7 +12,7 @@ export default function ResultScreen() {
   const router = useRouter();
   
   const { finding, category, confidence, image_url, prediction } = params;
-  const isNormal = finding?.toString().toLowerCase() === 'normal' || prediction?.toString().toLowerCase() === 'normal';
+  const isNormal = finding?.toString().toLowerCase() === 'normal' || prediction?.toString().toLowerCase() === 'normal' || category?.toString().toLowerCase() === 'normal';
   const confidenceValue = parseFloat(confidence as string) || 0;
 
   // Fix image URL
@@ -20,8 +20,9 @@ export default function ResultScreen() {
     ? (String(image_url).startsWith('http') ? String(image_url) : `${BACKEND_URL}${image_url}`)
     : null;
 
-  const resultText = prediction || finding || (isNormal ? 'No Abnormality Detected' : 'Fracture Abnormality Detected');
-  const catText = category || 'Fracture Abnormality Detected';
+  // Prioritize the detailed finding/category for the "Type" display
+  const resultText = finding || category || prediction || (isNormal ? 'No Abnormality Detected' : 'Fracture Abnormality Detected');
+  const catText = category || finding || 'Fracture Abnormality Detected';
 
   return (
     <View style={styles.container}>
