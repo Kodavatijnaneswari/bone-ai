@@ -73,8 +73,10 @@ export default function PredictScreen() {
 
       const response = await api.post(ENDPOINTS.DETECT, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json',
+          // Axios automatically sets multipart/form-data boundary
         },
+        timeout: 90000, 
       });
 
       router.push({
