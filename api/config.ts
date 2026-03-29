@@ -8,8 +8,8 @@ import Constants from 'expo-constants';
 const RENDER_URL = 'https://bone-ai-detection.onrender.com';
 const LOCAL_URL = 'http://127.0.0.1:8000';
 
-// Default to RENDER_URL for deployment, can be overridden by EXPO_PUBLIC_API_URL or changed to LOCAL_URL manually
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || RENDER_URL; 
+// LOCKED: Using Render URL for 100% Mobile Stability
+const BASE_URL = RENDER_URL; 
 
 export const api = axios.create({
   baseURL: BASE_URL,
