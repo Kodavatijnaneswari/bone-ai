@@ -5,7 +5,7 @@ import Constants from 'expo-constants';
 // For Android Emulator, use '10.0.2.2'
 // For iOS Simulator, use 'localhost'
 // Support both local and production URLs
-const RENDER_URL = 'https://bone-h6ca.onrender.com';
+const RENDER_URL = 'https://bakend-icob.onrender.com';
 const LOCAL_URL = 'http://127.0.0.1:8000';
 
 // Default to RENDER_URL for deployment, can be overridden by EXPO_PUBLIC_API_URL or changed to LOCAL_URL manually
