@@ -49,14 +49,19 @@ export default function PredictScreen() {
       const auth = await getUserAuth();
       const formData = new FormData();
       
-      const filename = image.split('/').pop() || 'image.jpg';
-      const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : `image/jpeg`;
+      const rawFilename = image.split('/').pop() || 'image';
+      const match = /\.(\w+)$/.exec(rawFilename);
+      // Always ensure a proper extension — blob URLs have no extension
+      const ext = match ? match[1] : 'jpg';
+      const filename = match ? rawFilename : `${rawFilename}.jpg`;
+      const type = `image/${ext === 'jpg' ? 'jpeg' : ext}`;
 
       if (Platform.OS === 'web') {
         const response = await fetch(image);
         const blob = await response.blob();
-        formData.append('image', blob, filename);
+        // Force correct MIME type so backend saves with correct extension
+        const typedBlob = new Blob([blob], { type: 'image/jpeg' });
+        formData.append('image', typedBlob, filename);
       } else {
         // @ts-ignore
         formData.append('image', { uri: image, name: filename, type });
