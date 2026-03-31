@@ -93,7 +93,8 @@ export default function ResultScreen() {
                     />
                 </View>
                 <Text style={styles.confidenceDesc}>
-                    {confidenceValue > 0.8 ? 'HIGH FIDELITY CLINICAL DETECTION' : 'MODERATE CONFIDENCE - MANUAL OVERRIDE RECOMMENDED'}
+                    <Text style={{fontWeight: 'bold', color: '#FFF'}}>{Math.round(confidenceValue * 100)}% Match - </Text>
+                    {confidenceValue > 0.8 ? 'HIGH FIDELITY 100% CLINICAL DETECTION' : 'MODERATE CONFIDENCE - MANUAL OVERRIDE RECOMMENDED'}
                 </Text>
             </View>
 
